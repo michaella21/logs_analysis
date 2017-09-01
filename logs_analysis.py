@@ -69,9 +69,9 @@ db.close()
 output_file.write(
     "\n(3) On which days did more than 1% of requests lead to errors?\n\n")
 
-# for the error rates, round to the second decimal points 
+# for the error rates, round to the second decimal points
 for day in most_errored_date:
-	output_file.write('\t' + str(day[0].strftime("%B %d, %Y")) + ' - ' + str(round(day[1],2)) + '% errors' )
-	
-output_file.close()
+    output_file.write(
+        '\t' + str(day[0].strftime("%B %d, %Y")) + ' - ' + str(round(day[1], 2)) + '% errors')
 
+output_file.close()
