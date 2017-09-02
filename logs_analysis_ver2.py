@@ -2,30 +2,19 @@
 
 import psycopg2
 
-DBNAME = "news"
-DB_status = False
 
-try:
-    db = psycopg2.connect(database=DBNAME)
-    DB_status = True
-except:
-    print("Database is not found. Please check it again.")
-
-
-def make_cursor(DBNAME):
-    """ If db is connected, make an object or cursor and return it."""
-    if DB_status:
-        return db.cursor()
-    else:
-        print("Please connect it to the database first.")
-
-
-def execute_query(query):
-    """ Execute the SQL query and returns the resuls as a list of tuples."""
-    cur.execute(query)
-    result = cur.fetchall()
-    cur.close()
-    return result
+def get_query_results(query):
+    try:
+        db = psycopg2.connect(database="news")
+        c = db.cursor()
+        c.execute(query)
+        result = c.fetchall()
+        c.close()
+        db.close()
+        return result
+    except Exception as e:
+        print(e)
+        exit(1)
 
 
 def print_top_articles(output_file):
@@ -39,7 +28,7 @@ def print_top_articles(output_file):
     LIMIT 3
     """
     # most_read_articles is a list of tuples ('title', #views) order by views
-    most_read_articles = execute_query(query)
+    most_read_articles = get_query_results(query)
     output_file.write(
         "(1) What are the most popular three articles of all time?\n\n")
 
@@ -59,7 +48,7 @@ def print_top_authors(output_file):
     ORDER BY total_views DESC
     """
     # most_popular_author is a list of tuples ('author_name', #total_views)
-    most_popular_author = execute_query(query)
+    most_popular_author = get_query_results(query)
     output_file.write(
         "\n(2) Who are the most popular article authors of all time?\n\n")
     for author, views in most_popular_author:
@@ -80,9 +69,10 @@ def print_errors_over_one(output_file):
     WHERE subq_error.error_ct/subq_total.total_ct > 0.01
     """
     # most_errored_date is a list of tuples ('date', % errors)
-    most_errored_date = execute_query(query)
+    most_errored_date = get_query_results(query)
     output_file.write(
-        "\n(3) On which days did more than 1% of requests lead to errors?\n\n")
+        "\n(3) On which days did more than 1% of requests lead to errors?\n\n"
+        )
     # for the error rates, round to the second decimal points
     for day in most_errored_date:
         output_file.write(
@@ -90,12 +80,7 @@ def print_errors_over_one(output_file):
 
 
 if __name__ == '__main__':
-    cur = make_cursor("news")
     output_file = open('analysis.txt', 'w')
     print_top_articles(output_file)
-    cur = make_cursor("news")
     print_top_authors(output_file)
-    cur = make_cursor("news")
     print_errors_over_one(output_file)
-    if DB_status:
-        db.close()
